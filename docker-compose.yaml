@@ -12,7 +12,7 @@ services:
     volumes:
       - ./pgdata:/var/lib/postgresql/data  # сохраняем полученные данные здесь
     ports:
-      - '5433:5432'  
+      - 5432:5432
 
   kafka-1:
     image: 'bitnami/kafka:3.8.0'
@@ -28,10 +28,10 @@ services:
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9094,2@kafka-2:9094,3@kafka-3:9094
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-1:9092
       - ALLOW_PLAINTEXT_LISTENER=yes
-      # - KAFKA_KRAFT_CLUSTER_ID=r4zt_wrqTRuT7W2NJsB_GA
+      - KAFKA_KRAFT_CLUSTER_ID=r4zt_wrqTRuT7W4NJsB_GA
       - KAFKA_CFG_NODE_ID=1
     volumes:
-      - ./kafdata:/opt/kafka/data
+      - ./kafdata1:/opt/bitnami/kafka/data
     ports:
       - 9192:9092
 
@@ -49,8 +49,10 @@ services:
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9094,2@kafka-2:9094,3@kafka-3:9094
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-2:9092
       - ALLOW_PLAINTEXT_LISTENER=yes
-      # - KAFKA_KRAFT_CLUSTER_ID=r4zt_wrqTRuT7W2NJsB_GA
+      - KAFKA_KRAFT_CLUSTER_ID=r4zt_wrqTRuT7W4NJsB_GA
       - KAFKA_CFG_NODE_ID=2
+    volumes:
+      - ./kafdata2:/opt/bitnami/kafka/data
     ports:
       - 9292:9092
 
@@ -68,8 +70,10 @@ services:
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9094,2@kafka-2:9094,3@kafka-3:9094
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-3:9092
       - ALLOW_PLAINTEXT_LISTENER=yes
-      # - KAFKA_KRAFT_CLUSTER_ID=r4zt_wrqTRuT7W2NJsB_GA
+      - KAFKA_KRAFT_CLUSTER_ID=r4zt_wrqTRuT7W4NJsB_GA
       - KAFKA_CFG_NODE_ID=3
+    volumes:
+      - ./kafdata3:/opt/bitnami/kafka/data
     ports:
       - 9392:9092
 
@@ -77,38 +81,25 @@ services:
     container_name: kafka-ui
     image: 'provectuslabs/kafka-ui:latest'
     ports:
-      - "8090:8080"
+      - 8190:8180
     environment:
       - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka-1:9092
-      # - KAFKA_CLUSTERS_0_NAME=r4zt_wrqTRuT7W2NJsB_GA
-    
+      - KAFKA_CLUSTERS_0_NAME=r4zt_wrqTRuT7W4NJsB_GA
     links:
       - kafka-1
       - kafka-2
       - kafka-3
+    networks:
+      - network
 
-  producer:
-    build:
-      context: .
-      dockerfile: producer/Dockerfile
-    ports:
-      - 8080:8080
-    links:
-      - kafka-ui
-
-  consumer:
-    build:
-      context: .
-      dockerfile: consumer/Dockerfile
-    ports:
-      - 8081:8080
-    links:
-      - kafka-ui
+  networks:
+    network:
+      driver: bridge
 
   cron_docker:
     container_name: 'python_app'
     build:
-      context: python_app
+      context: .
     volumes:
       - ./:/app
     depends_on:

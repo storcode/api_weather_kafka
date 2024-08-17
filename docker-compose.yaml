@@ -2,17 +2,17 @@ version: '3.8'
  
 services:
 
-  db_app:
+  db_postgres:
     image: 'postgres:16'
-    container_name: 'postgreSQL_db'
-    environment:
-      POSTGRES_DB: 'postgres'
-      POSTGRES_USER: 'postgres'
-      POSTGRES_PASSWORD: 'postgres'
+    container_name: postgres_db
+    env_file:
+      - .env.postgres
     volumes:
-      - ./pgdata:/var/lib/postgresql/data  # сохраняем полученные данные здесь
+      - ./pgdata:/var/lib/postgresql/data
     ports:
       - 5432:5432
+    networks:
+      - network
 
   kafka-1:
     image: 'bitnami/kafka:3.8.0'
@@ -34,6 +34,8 @@ services:
       - ./kafdata1:/opt/bitnami/kafka/data
     ports:
       - 9192:9092
+    networks:
+      - network
 
   kafka-2:
     image: 'bitnami/kafka:3.8.0'
@@ -55,6 +57,8 @@ services:
       - ./kafdata2:/opt/bitnami/kafka/data
     ports:
       - 9292:9092
+    networks:
+      - network
 
   kafka-3:
     image: 'bitnami/kafka:3.8.0'
@@ -76,6 +80,8 @@ services:
       - ./kafdata3:/opt/bitnami/kafka/data
     ports:
       - 9392:9092
+    networks:
+      - network
 
   kafka-ui:
     container_name: kafka-ui
@@ -92,22 +98,19 @@ services:
     networks:
       - network
 
-  networks:
-    network:
-      driver: bridge
-
   cron_docker:
-    container_name: 'python_app'
+    container_name: python_app
     build:
-      context: .
+      context: ./cron_src
     volumes:
-      - ./:/app
+      - ./cron_src:/app
     depends_on:
-      - db_app
+      - db_postgres
       - kafka-1
       - kafka-2
       - kafka-3
       - kafka-ui
 
-
-
+networks:
+  network:
+    driver: bridge

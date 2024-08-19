@@ -1,7 +1,6 @@
 version: '3.8'
- 
-services:
 
+services:
   db_postgres:
     image: 'postgres:16'
     container_name: postgres_db
@@ -12,7 +11,7 @@ services:
     ports:
       - 5432:5432
     networks:
-      - network
+      - weather_kafka
 
   kafka-1:
     image: 'bitnami/kafka:3.8.0'
@@ -35,7 +34,7 @@ services:
     ports:
       - 9192:9092
     networks:
-      - network
+      - weather_kafka
 
   kafka-2:
     image: 'bitnami/kafka:3.8.0'
@@ -58,7 +57,7 @@ services:
     ports:
       - 9292:9092
     networks:
-      - network
+      - weather_kafka
 
   kafka-3:
     image: 'bitnami/kafka:3.8.0'
@@ -81,7 +80,7 @@ services:
     ports:
       - 9392:9092
     networks:
-      - network
+      - weather_kafka
 
   kafka-ui:
     container_name: kafka-ui
@@ -96,7 +95,7 @@ services:
       - kafka-2
       - kafka-3
     networks:
-      - network
+      - weather_kafka
 
   cron_docker:
     container_name: python_app
@@ -110,7 +109,10 @@ services:
       - kafka-2
       - kafka-3
       - kafka-ui
+    networks:
+      - weather_kafka
 
 networks:
-  network:
-    driver: bridge
+  weather_kafka:
+    external: true
+

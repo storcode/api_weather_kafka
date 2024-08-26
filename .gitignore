@@ -1,3 +1,5 @@
+__pycache__
+
 key_appid.py
 key_PSQL.py
 weather_city.json
@@ -10,4 +12,3 @@ weather_city.json
 /kafdata3
 /pgdata
 
-/__pycache__

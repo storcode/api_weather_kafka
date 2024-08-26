@@ -6,6 +6,7 @@ RUN pip install requests
 RUN pip install psycopg2-binary
 RUN pip install DateTime
 RUN pip install pytz
+RUN install confluent-kafka
 
 # Скопировать cron-docker файл в каталог cron.d 
 COPY ./cron_docker /etc/cron.d/crontab

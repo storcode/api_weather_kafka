@@ -9,3 +9,5 @@ weather_city.json
 /kafdata2
 /kafdata3
 /pgdata
+
+/__pycache__

@@ -23,9 +23,14 @@ def on_delivery(err, msg):
 def download_weather_data():
     key_appid = key.key_appid
     url = f'https://api.openweathermap.org/data/2.5/weather?q=Cheboksary,ru&APPID={key_appid}&units=metric'
-    response = requests.get(url=url).json()
+    response = requests.get(url=url)
     response.raise_for_status()  # Проверка на успешность запроса
-    return response.json()
+    data = response.json()
+
+    with open('weather_city.json', 'w') as filename:
+        json.dump(data, filename)
+    logging.info("Файл успешно скачан")
+    return data
 
 
 def send_weather_data(producer, topic, data):

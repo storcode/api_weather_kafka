@@ -103,7 +103,7 @@ services:
     build:
       context: ./cron_src
     volumes:
-      - ./cron_src:/app
+      - ./:/app
     depends_on:
       - db_postgres
       - kafka-1

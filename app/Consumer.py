@@ -1,4 +1,3 @@
-import requests
 import json
 import psycopg2
 from psycopg2 import OperationalError
@@ -49,18 +48,6 @@ def main():
         logging.info('Действие прервано')
     finally:
         consumer.close()
-
-
-def download():
-    import key_appid as key 
-    key_appid = key.key_appid
-    url = f'https://api.openweathermap.org/data/2.5/weather?q=Cheboksary,ru&APPID={key_appid}&units=metric'
-    r = requests.get(url=url).json()
-
-    with open('weather_city.json', 'w') as filename:
-        json.dump(r, filename)
-    logging.info("Файл успешно скачан")
-    return r
 
 
 def process_weather_data(r):

@@ -8,5 +8,7 @@
 # |  |  |  |  |
 # *  *  *  *  * user-name command to be executed
 
-* * * * *    /usr/local/bin/python /app/send.py  >> /var/log/cron_docker_send.log
-* * * * *    /usr/local/bin/python /app/receive.py >> /var/log/cron_docker_receive.log
+* * * * *    /usr/local/bin/python3.12 /app/app/Producer.py  >> /var/log/cron_docker_producer.log 2>&1
+* * * * *    /usr/local/bin/python3.12 /app/app/Consumer.py >> /var/log/cron_docker_consumer.log 2>&1
+
+# 2>&1: Это перенаправляет стандартные ошибки (stderr) в стандартный вывод (stdout), так что и ошибки, и обычные сообщения будут записываться в лог-файлы.

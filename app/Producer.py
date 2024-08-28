@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 def create_producer():
-    producer_conf = {'bootstrap.servers': 'kafka-1:9092,kafka-2:9092,kafka-3:9092'}
+    producer_conf = {'bootstrap.servers': 'kafka-1:9092'}
     return Producer(producer_conf)
 
 
@@ -17,7 +17,7 @@ def on_delivery(err, msg):
     if err is not None:
         logging.error(f"Сообщение не доставлено {err}")
     else:
-        logging.info(f"Сообщение доставлено {msg.topic()} [{msg.partition()}] по смещению {msg.offset()}")
+        logging.info(f"Сообщение доставлено в топик {msg.topic()} [{msg.partition()}] по смещению {msg.offset()}")
 
 
 def download_weather_data():

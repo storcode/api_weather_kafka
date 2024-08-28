@@ -6,9 +6,6 @@ weather_city.json
 /logs
 .env.postgres
 
-/kafdata
 /kafdata1
-/kafdata2
-/kafdata3
 /pgdata
 

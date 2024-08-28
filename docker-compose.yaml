@@ -25,7 +25,7 @@ services:
       - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9094
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       - KAFKA_CFG_BROKER_ID=1
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9094,2@kafka-2:9094,3@kafka-3:9094
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9094
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-1:9092
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_KRAFT_CLUSTER_ID=r4zt_wrqTRuT7W4NJsB_GA
@@ -34,52 +34,6 @@ services:
       - ./kafdata1:/opt/bitnami/kafka/data
     ports:
       - 9192:9092
-    networks:
-      - weather_kafka
-
-  kafka-2:
-    image: 'bitnami/kafka:3.8.0'
-    container_name: kafka-2
-    environment:
-      - KAFKA_ENABLE_KRAFT=yes
-      - KAFKA_CFG_PROCESS_ROLES=broker,controller
-      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9094
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      - KAFKA_CFG_BROKER_ID=2
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9094,2@kafka-2:9094,3@kafka-3:9094
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-2:9092
-      - ALLOW_PLAINTEXT_LISTENER=yes
-      - KAFKA_KRAFT_CLUSTER_ID=r4zt_wrqTRuT7W4NJsB_GA
-      - KAFKA_CFG_NODE_ID=2
-    volumes:
-      - ./kafdata2:/opt/bitnami/kafka/data
-    ports:
-      - 9292:9092
-    networks:
-      - weather_kafka
-
-  kafka-3:
-    image: 'bitnami/kafka:3.8.0'
-    container_name: kafka-3
-    environment:
-      - KAFKA_ENABLE_KRAFT=yes
-      - KAFKA_CFG_PROCESS_ROLES=broker,controller
-      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9094
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      - KAFKA_CFG_BROKER_ID=3
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9094,2@kafka-2:9094,3@kafka-3:9094
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-3:9092
-      - ALLOW_PLAINTEXT_LISTENER=yes
-      - KAFKA_KRAFT_CLUSTER_ID=r4zt_wrqTRuT7W4NJsB_GA
-      - KAFKA_CFG_NODE_ID=3
-    volumes:
-      - ./kafdata3:/opt/bitnami/kafka/data
-    ports:
-      - 9392:9092
     networks:
       - weather_kafka
 
@@ -93,8 +47,6 @@ services:
       - KAFKA_CLUSTERS_0_NAME=r4zt_wrqTRuT7W4NJsB_GA
     links:
       - kafka-1
-      - kafka-2
-      - kafka-3
     networks:
       - weather_kafka
 
@@ -107,8 +59,6 @@ services:
     depends_on:
       - db_postgres
       - kafka-1
-      - kafka-2
-      - kafka-3
       - kafka-ui
     networks:
       - weather_kafka

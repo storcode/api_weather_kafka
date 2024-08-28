@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 
 def main():
     consumer_conf = {
-        'bootstrap.servers': 'kafka-1:9092,kafka-2:9092,kafka-3:9092',  # Адреса брокеров Kafka
+        'bootstrap.servers': 'kafka-1:9092',  # Адреса брокеров Kafka
         'group.id': 'weather_consumer_group',
         'auto.offset.reset': 'earliest'
     }
@@ -50,30 +50,46 @@ def main():
         consumer.close()
 
 
+def create_connection_db():
+    import key_PSQL
+    connection = None
+    try:
+        connection = psycopg2.connect(user=key_PSQL.user,
+                                      password=key_PSQL.password,
+                                      host="db_postgres", # название контейнера в docker-compose
+                                      port="5432",
+                                      database=key_PSQL.database)
+        logging.info("Подключение к базе PostgreSQL успешно")
+    except OperationalError as e:
+        logging.error(f"The error '{e}' occurred")
+    return connection
+
+
 def process_weather_data(r):
-    msc = pytz.timezone('Europe/Moscow')
+    msc = pytz.timezone('europe/moscow')
     date_downloads = datetime.now(msc).strftime("%Y-%m-%d")
     time_downloads = datetime.now(msc).strftime("%H:%M:%S")
     try:
-        connection = psycopg2.connect(user="postgres",
-                                      password="postgres",
-                                      host="db_postgres",  # Название контейнера в docker-compose
-                                      port="5432",
-                                      database="postgres")
-        logging.info("Подключение к базе PostgreSQL выполнено")
+        connection = create_connection_db()
         cursor = connection.cursor()
         count_weather = insert_weather(cursor, date_downloads, time_downloads, r)
         logging.info(count_weather, "Запись успешно вставлена в таблицу 'weather'")
-        count_city_name = insert_city_name(cursor)
-        logging.info(count_city_name, "Запись успешно вставлена в таблицу 'city_name'")
-        count_date_time_downloads = insert_date_time_downloads(cursor)
-        logging.info(count_date_time_downloads, "Запись успешно вставлена в таблицу 'date_time_downloads'")
-        count_sun_light = insert_sun_light(cursor)
-        logging.info(count_sun_light, "Запись успешно вставлена в таблицу 'sun_light'")
-        count_weather_temperature_params = insert_weather_temperature_params(cursor)
-        logging.info(count_weather_temperature_params, "Запись успешно вставлена в таблицу 'weather_temperature_params'")
-        count_weather_wind_clouds_params = insert_weather_wind_clouds_params(cursor)
-        logging.info(count_weather_wind_clouds_params, "Запись успешно вставлена в таблицу 'weather_wind_clouds_params'")
+        count_dim_coordinates = insert_dim_coordinates(cursor)
+        logging.info(count_dim_coordinates, "Запись успешно вставлена в таблицу 'dim_coordinates'")
+        count_dim_date = insert_dim_date(cursor)
+        logging.info(count_dim_date, "Запись успешно вставлена в таблицу 'dim_date'")
+        count_dim_sun_light = insert_dim_sun_light(cursor)
+        logging.info(count_dim_sun_light, "Запись успешно вставлена в таблицу 'dim_sun_light'")
+        count_dim_time = insert_dim_time(cursor)
+        logging.info(count_dim_time, "Запись успешно вставлена в таблицу 'dim_time'")
+        count_dim_timezone = insert_dim_timezone(cursor)
+        logging.info(count_dim_timezone, "Запись успешно вставлена в таблицу 'dim_timezone'")
+        count_dim_timezone_name = insert_dim_timezone_name(cursor)
+        logging.info(count_dim_timezone_name, "Запись успешно вставлена в таблицу 'dim_timezone_name'")
+        count_dim_weather_descr = insert_dim_weather_descr(cursor)
+        logging.info(count_dim_weather_descr, "Запись успешно вставлена в таблицу 'dim_weather_descr'")
+        count_fact_weather = insert_fact_weather(cursor)
+        logging.info(count_fact_weather, "Запись успешно вставлена в таблицу 'fact_weather'")
         connection.commit()
         cursor.close()
         connection.close()

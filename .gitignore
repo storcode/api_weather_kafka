@@ -5,7 +5,7 @@ key_PSQL.py
 weather_city.json
 /logs
 .env.postgres
-
+.venv
 /kafdata1
 /pgdata
 

@@ -1,7 +1,7 @@
 FROM python:3.12
 
 RUN apt update && apt -y install cron
-RUN pip install --upgrade pip
+RUN pip install --upgrade pip --root-user-action=ignore
 
 # Устанавить рабочую директорию в контейнере
 WORKDIR /app

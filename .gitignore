@@ -1,11 +1,12 @@
 __pycache__
 
-key_appid.py
-key_PSQL.py
-weather_city.json
-/logs
 .env.postgres
 .venv
+
+/logs
 /kafdata1
 /pgdata
 
+key_appid.py
+key_PSQL.py
+weather_city.json

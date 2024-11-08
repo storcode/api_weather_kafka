@@ -1,8 +1,7 @@
-version: '3.8'
 
 services:
   db_postgres:
-    image: 'postgres:16'
+    image: 'postgres:17'
     container_name: postgres_db
     env_file:
       - .env.postgres
@@ -10,7 +9,7 @@ services:
       - ./pgdata:/var/lib/postgresql/data  # сохраняем полученные данные здесь
       - ./app/init.sql:/docker-entrypoint-initdb.d/init.sql  # специальная точка входа для инициализации БД
     ports:
-      - 5432:5432
+      - 5433:5432
     networks:
       - weather_kafka
 
@@ -65,4 +64,4 @@ services:
 
 networks:
   weather_kafka:
-    external: true
+    external: true # сеть объявлена как внешняя, означает, что сеть существует в Docker

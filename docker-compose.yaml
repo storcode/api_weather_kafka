@@ -10,6 +10,7 @@ services:
       - ./app/init.sql:/docker-entrypoint-initdb.d/init.sql  # специальная точка входа для инициализации БД
     ports:
       - 5433:5432
+    restart: always
     networks:
       - weather_kafka
 
@@ -33,19 +34,21 @@ services:
       - ./kafdata1:/opt/bitnami/kafka/data
     ports:
       - 9192:9092
+    restart: always
     networks:
       - weather_kafka
 
   kafka-ui:
     container_name: kafka-ui
     image: 'provectuslabs/kafka-ui:latest'
-    ports:
-      - 8190:8180
     environment:
       - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka-1:9092
       - KAFKA_CLUSTERS_0_NAME=r4zt_wrqTRuT7W4NJsB_GA
     links:
       - kafka-1
+    ports:
+      - 8190:8180
+    restart: always
     networks:
       - weather_kafka
 
@@ -54,11 +57,12 @@ services:
     build:
       context: ./cron_src
     volumes:
-      - ./:/app
+      - ./:/home
     depends_on:
       - db_postgres
       - kafka-1
       - kafka-ui
+    restart: always
     networks:
       - weather_kafka
 

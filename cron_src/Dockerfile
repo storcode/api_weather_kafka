@@ -4,7 +4,7 @@ RUN apt update && apt -y install cron
 RUN pip install --upgrade pip --root-user-action=ignore
 
 # Устанавить рабочую директорию в контейнере
-WORKDIR /app
+WORKDIR /home
 
 # Копируем файл requirements.txt в рабочую директорию контейнера
 COPY requirements.txt .

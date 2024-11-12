@@ -19,7 +19,7 @@ def main():
     }
 
     consumer = Consumer(consumer_conf)
-    consumer.subscribe(['connection_db'])  # Подписка на тему
+    consumer.subscribe(['weather_topic_1', 'weather_topic_2', 'weather_topic_3'])  # Подписка на тему
 
     logging.info(' [*] Ожидание сообщения. Нажмите <CTRL+C> для выхода')
 

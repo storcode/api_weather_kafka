@@ -6,7 +6,7 @@ __pycache__
 /logs
 /kafdata1
 /pgdata
+/downloads_weather
 
 key_appid.py
 key_PSQL.py
-weather_city.json

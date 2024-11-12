@@ -141,8 +141,8 @@ def insert_dim_timezone_name(cursor):
         group by "name", country
     ) as src
     left join dwh.dim_timezone_name dtn
-        on dtn.country = src.country
-    where dtn.country is null""")
+        on dtn."name" = src."name"
+    where dtn."name" is null""")
     count_dim_timezone_name = cursor.rowcount
     return count_dim_timezone_name
 

@@ -19,7 +19,6 @@ CREATE TABLE IF NOT EXISTS dwh.weather
 	constraint pk_weather PRIMARY KEY (id)
 );
 
-
 CREATE TABLE IF NOT EXISTS dwh.dim_coordinates
 (
 	coord_id integer generated always as identity,

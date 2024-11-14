@@ -193,21 +193,21 @@ def insert_stage_fact_weather(cursor):
     insert into dwh.stage_fact_weather 
     (
     weather_id, hash, dim_date_id, date_downloads, dim_time_id, time_downloads, dim_coordinates_id, longitude, latitude,
-    dim_sun_light_id, sun_l_id, sun_l_country, sun_l_sunrise, sun_l_sunset, dim_timezone_id, timezone,
-    dim_timezone_name_id, timezone_name, dim_weather_descr_id, weather_descr_id, weather_main, weather_description, 
+    dim_sun_light_id, sun_l_country, sun_l_sunrise, sun_l_sunset, dim_timezone_id, timezone,
+    dim_timezone_name_id, timezone_name, dim_weather_descr_id, weather_main, weather_description, 
     cloudiness, dim_wind_id, wind_speed, wind_direction, temperature, feels_like, 
     temp_min, temp_max, pressure, humidity, visibility, time_calculation
     )
     select distinct on (src.id) src.id as weather_id, 
         md5(src.id::text || dd.date_id::text || dt.time_id::text)::uuid as hash, dd.date_id as dim_date_id,
         src.date_downloads, dt.time_id as dim_time_id, src.time_downloads, dco.coord_id as dim_coordinates_id, 
-        ll.lon as longitude, ll.lat as latitude, dsl.sun_light_id as dim_sun_light_id,
-        sun_l.id as sun_l_id, sun_l.country, sun_l.sunrise as sun_l_sunrise, sun_l.sunset as sun_l_sunset, 
-        dtz.timezone_id as dim_timezone_id, dtz.timezone as timezone, dtn.timezone_name_id as dim_timezone_name_id,
-        dtn."name" as timezone_name, dwd.weather_descr_id as dim_weather_descr_id, weath.id as weather_descr_id, 
-        weath.main as weather_main, weath.description as weather_description, cloud."all" as cloudiness, 
-        dw.wind_id as dim_wind_id, wd.speed as wind_speed, wd.deg as wind_direction, tempr."temp" as temperature, 
-        fl.feels_like, temp_mn.temp_min, temp_mx.temp_max, pr.pressure, hum.humidity, src.visibility::smallint, src.dt as time_calculation
+        ll.lon as longitude, ll.lat as latitude, dsl.sun_light_id as dim_sun_light_id, sun_l.country, 
+        sun_l.sunrise as sun_l_sunrise, sun_l.sunset as sun_l_sunset, dtz.timezone_id as dim_timezone_id, 
+        dtz.timezone as timezone, dtn.timezone_name_id as dim_timezone_name_id,dtn."name" as timezone_name, 
+        dwd.weather_descr_id as dim_weather_descr_id, weath.main as weather_main, 
+        weath.description as weather_description, cloud."all" as cloudiness, dw.wind_id as dim_wind_id, 
+        wd.speed as wind_speed, wd.deg as wind_direction, tempr."temp" as temperature, fl.feels_like, 
+        temp_mn.temp_min, temp_mx.temp_max, pr.pressure, hum.humidity, src.visibility::smallint, src.dt as time_calculation
     from dwh.weather as src
     join dwh.dim_date as dd on dd.initial_date = src.date_downloads 
     join dwh.dim_time as dt on dt.initial_time = src.time_downloads

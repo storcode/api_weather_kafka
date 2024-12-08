@@ -5,6 +5,8 @@ __pycache__
 
 /logs
 /kafdata1
+/kafdata2
+/kafdata3
 /pgdata
 /downloads_weather
 

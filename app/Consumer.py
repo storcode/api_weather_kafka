@@ -6,26 +6,51 @@ import pytz
 from confluent_kafka import Consumer, KafkaError
 import logging
 from database import *
+import re
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 
 
+def get_topics_from_file(file_path):
+    topics = []
+    try:
+        with open(file_path, 'r') as file:
+            for line in file:
+                # Используем регулярное выражение для извлечения названий топиков
+                match = re.search(r'--topic (\S+)', line)
+                if match:
+                    topics.append(match.group(1))
+    except FileNotFoundError:
+        logging.error(f"Файл {file_path} не найден.")
+    except Exception as e:
+        logging.error(f"Ошибка при чтении файла {file_path}: {e}")
+    return topics
+
+
 def main():
+    connection = create_connection_db()
+    if connection is None:
+        logging.error("Не удалось подключиться к базе данных. Завершение работы.")
+        return
+
+    # Получаем названия топиков из файла
+    topics = get_topics_from_file('./scripts_kafka/kafka-topics.sh')
+
     consumer_conf = {
         'bootstrap.servers': 'kafka-1:9092',  # Адреса брокеров Kafka
         'group.id': 'weather_consumer_group',
-        'auto.offset.reset': 'earliest'
+        'auto.offset.reset': 'earliest' # Чтение с начала, если нет смещения
     }
 
     consumer = Consumer(consumer_conf)
-    consumer.subscribe(['weather_topic_1', 'weather_topic_2', 'weather_topic_3'])  # Подписка на тему
+    consumer.subscribe(topics)  # Подписка на тему
 
     logging.info(' [*] Ожидание сообщения. Нажмите <CTRL+C> для выхода')
 
     try:
         while True:
-            msg = consumer.poll(1.0)  # Ожидание сообщения (1 сек)
+            msg = consumer.poll(2.0)  # Ожидание сообщения (2 сек)
             if msg is None:
                 continue
             if msg.error():
@@ -40,19 +65,21 @@ def main():
 
             try:
                 resp = json.loads(body)  # Преобразование JSON-строки в Python-словарь
-                process_weather_data(resp)
+                process_weather_data(resp, connection)
             except json.JSONDecodeError as e:
                 logging.error(f"Ошибка JSON декодирования: {e}")
-
+            except Exception as e:
+                logging.error(f"Ошибка обработки сообщения: {e}")
     except KeyboardInterrupt:
         logging.info('Действие прервано')
     finally:
         consumer.close()
+        if connection:
+            connection.close()  # Закрываем соединение с базой данных
 
 
 def create_connection_db():
     import key_PSQL
-    connection = None
     try:
         connection = psycopg2.connect(user=key_PSQL.user,
                                       password=key_PSQL.password,
@@ -60,44 +87,42 @@ def create_connection_db():
                                       port="5432",
                                       database=key_PSQL.database)
         logging.info("Подключение к базе PostgreSQL успешно")
+        return connection
     except OperationalError as e:
-        logging.error(f"The error '{e}' occurred")
-    return connection
+        logging.error(f"Ошибка подключения к базе данных: {e}")
+    return None
 
 
-def process_weather_data(r):
+def process_weather_data(r, connection):
     msc = pytz.timezone('europe/moscow')
     date_downloads = datetime.now(msc).strftime("%Y-%m-%d")
     time_downloads = datetime.now(msc).strftime("%H:%M:%S")
+    
     try:
-        connection = create_connection_db()
-        cursor = connection.cursor()
-        count_weather = insert_weather(cursor, date_downloads, time_downloads, r)
-        logging.info(f"{count_weather} Запись успешно вставлена в таблицу 'weather'")
-        count_dim_coordinates = insert_dim_coordinates(cursor)
-        logging.info(f"{count_dim_coordinates} Запись успешно вставлена в таблицу 'dim_coordinates'")
-        count_dim_date = insert_dim_date(cursor)
-        logging.info(f"{count_dim_date} Запись успешно вставлена в таблицу 'dim_date'")
-        count_dim_main = insert_dim_main(cursor)
-        logging.info(f"{count_dim_main} Запись успешно вставлена в таблицу 'dim_main'")
-        count_dim_sun_light = insert_dim_sun_light(cursor)
-        logging.info(f"{count_dim_sun_light} Запись успешно вставлена в таблицу 'dim_sun_light'")
-        count_dim_time = insert_dim_time(cursor)
-        logging.info(f"{count_dim_time} Запись успешно вставлена в таблицу 'dim_time'")
-        count_dim_timezone = insert_dim_timezone(cursor)
-        logging.info(f"{count_dim_timezone} Запись успешно вставлена в таблицу 'dim_timezone'")
-        count_dim_timezone_name = insert_dim_timezone_name(cursor)
-        logging.info(f"{count_dim_timezone_name} Запись успешно вставлена в таблицу 'dim_timezone_name'")
-        count_dim_weather_descr = insert_dim_weather_descr(cursor)
-        logging.info(f"{count_dim_weather_descr} Запись успешно вставлена в таблицу 'dim_weather_descr'")
-        count_dim_wind = insert_dim_wind(cursor)
-        logging.info(f"{count_dim_wind} Запись успешно вставлена в таблицу 'dim_wind'")
-        count_stage_fact_weather = insert_stage_fact_weather(cursor)
-        logging.info(f"{count_stage_fact_weather} Запись успешно вставлена в таблицу 'stage_fact_weather'")
-        connection.commit()
-        cursor.close()
-        connection.close()
-        logging.info("Соединение с PostgreSQL закрыто")
+        with connection.cursor() as cursor: # курсор закрывается при выходе из блока with
+            count_weather = insert_weather(cursor, date_downloads, time_downloads, r)
+            logging.info(f"{count_weather} Запись успешно вставлена в таблицу 'weather'")
+            count_dim_coordinates = insert_dim_coordinates(cursor)
+            logging.info(f"{count_dim_coordinates} Запись успешно вставлена в таблицу 'dim_coordinates'")
+            count_dim_date = insert_dim_date(cursor)
+            logging.info(f"{count_dim_date} Запись успешно вставлена в таблицу 'dim_date'")
+            count_dim_main = insert_dim_main(cursor)
+            logging.info(f"{count_dim_main} Запись успешно вставлена в таблицу 'dim_main'")
+            count_dim_sun_light = insert_dim_sun_light(cursor)
+            logging.info(f"{count_dim_sun_light} Запись успешно вставлена в таблицу 'dim_sun_light'")
+            count_dim_time = insert_dim_time(cursor)
+            logging.info(f"{count_dim_time} Запись успешно вставлена в таблицу 'dim_time'")
+            count_dim_timezone = insert_dim_timezone(cursor)
+            logging.info(f"{count_dim_timezone} Запись успешно вставлена в таблицу 'dim_timezone'")
+            count_dim_timezone_name = insert_dim_timezone_name(cursor)
+            logging.info(f"{count_dim_timezone_name} Запись успешно вставлена в таблицу 'dim_timezone_name'")
+            count_dim_weather_descr = insert_dim_weather_descr(cursor)
+            logging.info(f"{count_dim_weather_descr} Запись успешно вставлена в таблицу 'dim_weather_descr'")
+            count_dim_wind = insert_dim_wind(cursor)
+            logging.info(f"{count_dim_wind} Запись успешно вставлена в таблицу 'dim_wind'")
+            count_stage_fact_weather = insert_stage_fact_weather(cursor)
+            logging.info(f"{count_stage_fact_weather} Запись успешно вставлена в таблицу 'stage_fact_weather'")
+            connection.commit()
     except OperationalError as e:
         logging.error(f"Произошла ошибка {e}")
     except Exception as e:

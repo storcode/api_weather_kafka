@@ -8,9 +8,15 @@ from coord_cities import cities # Импортируем список город
 logging.basicConfig(level=logging.INFO)
 
 def create_producer():
+    producer_conf = {
+        'bootstrap.servers': 'kafka-1:9092,kafka-2:9093,kafka-3:9094',
+        'acks': 'all',
+        'delivery.report.only.error': False,
+        'retries': 3,
+    }
     try:
-        producer_conf = {'bootstrap.servers': 'kafka-1:9092'}
-        return Producer(producer_conf)
+        with Producer(producer_conf) as producer:
+            yield producer
     except KafkaException as e:
         logging.error(f"Ошибка при создании продюсера Kafka: {e}")
         raise

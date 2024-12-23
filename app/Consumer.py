@@ -6,26 +6,9 @@ import pytz
 from confluent_kafka import Consumer, KafkaError
 import logging
 from database import *
-import re
 
 # Настройка логирования
-logging.basicConfig(level=logging.INFO)
-
-
-def get_topics_from_file(file_path):
-    topics = []
-    try:
-        with open(file_path, 'r') as file:
-            for line in file:
-                # Используем регулярное выражение для извлечения названий топиков
-                match = re.search(r'--topic (\S+)', line)
-                if match:
-                    topics.append(match.group(1))
-    except FileNotFoundError:
-        logging.error(f"Файл {file_path} не найден.")
-    except Exception as e:
-        logging.error(f"Ошибка при чтении файла {file_path}: {e}")
-    return topics
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def main():
@@ -35,17 +18,15 @@ def main():
         return
 
     # Получаем названия топиков из файла
-    topics = get_topics_from_file('./scripts_kafka/kafka-topics.sh')
-
+    topics = ['weather_topic_1', 'weather_topic_2', 'weather_topic_3']
     consumer_conf = {
-        'bootstrap.servers': 'kafka-1:9092',  # Адреса брокеров Kafka
+        'bootstrap.servers': 'kafka-1:9091,kafka-2:9092,kafka-3:9093',  # Адреса брокеров Kafka
         'group.id': 'weather_consumer_group',
-        'auto.offset.reset': 'earliest' # Чтение с начала, если нет смещения
+        'auto.offset.reset': 'latest'
     }
 
     consumer = Consumer(consumer_conf)
     consumer.subscribe(topics)  # Подписка на тему
-
     logging.info(' [*] Ожидание сообщения. Нажмите <CTRL+C> для выхода')
 
     try:
@@ -59,13 +40,12 @@ def main():
                 else:
                     logging.error(f"Ошибка Consumer: {msg.error()}")
                     continue
-
-            body = msg.value().decode('utf-8')  # Декодирование сообщения
-            logging.info(f"Получено сообщение: {body}")
-
             try:
+                body = msg.value().decode('utf-8')  # Декодирование сообщения
+                logging.info(f"Получено сообщение: {body}")
                 resp = json.loads(body)  # Преобразование JSON-строки в Python-словарь
                 process_weather_data(resp, connection)
+                consumer.commit(asynchronous=False)  # Фиксация смещения после успешной обработки
             except json.JSONDecodeError as e:
                 logging.error(f"Ошибка JSON декодирования: {e}")
             except Exception as e:
@@ -127,6 +107,7 @@ def process_weather_data(r, connection):
         logging.error(f"Произошла ошибка {e}")
     except Exception as e:
         logging.error(f"Ошибка обработки данных о погоде: {e}")
+        connection.rollback()  # Откатываем изменения при ошибке
 
 
 if __name__ == '__main__':

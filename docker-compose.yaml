@@ -25,13 +25,13 @@ services:
       # указываем, что описанный ранее listener с названием PLAINTEXT будет использоватся для брокеров
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
       # указываем название самой сущности "listener" и порты, на которых брокер будет принимать запросы
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9091,CONTROLLER://0.0.0.0:9092
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9091,CONTROLLER://0.0.0.0:9094
       # указываем протоколы, по которым будут работать описанные выше сущности "listener"
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       # уникальный идентификатор брокера в кластере Kafka
       - KAFKA_CFG_BROKER_ID=1
       # перечисляем список нод, которые исполняют роль controller'a и будут собраны вместе для кворума
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9091,2@kafka-2:9092,3@kafka-3:9093
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9094,2@kafka-2:9095,3@kafka-3:9096
       # указываем адрес и порт, по которым клиенты смогут подключаться к кластеру. контроллер здесь не указывается
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-1:9091
       # использование небезопасного соединения
@@ -44,6 +44,8 @@ services:
       - ./kafdata1:/opt/bitnami/kafka/data
     ports:
       - 9091:9091
+    depends_on:
+      - db_postgres
     restart: always
     networks:
       - weather_kafka
@@ -56,10 +58,10 @@ services:
       - KAFKA_CFG_PROCESS_ROLES=broker,controller
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9095
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       - KAFKA_CFG_BROKER_ID=2
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9091,2@kafka-2:9092,3@kafka-3:9093
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9094,2@kafka-2:9095,3@kafka-3:9096
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-2:9092
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_KRAFT_CLUSTER_ID=r4zt_wrqTRuT7W4NJsB_GA
@@ -68,6 +70,8 @@ services:
       - ./kafdata2:/opt/bitnami/kafka/data
     ports:
       - 9092:9092
+    depends_on:
+      - db_postgres
     restart: always
     networks:
       - weather_kafka
@@ -80,10 +84,10 @@ services:
       - KAFKA_CFG_PROCESS_ROLES=broker,controller
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9093,CONTROLLER://0.0.0.0:9094
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9093,CONTROLLER://0.0.0.0:9096
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       - KAFKA_CFG_BROKER_ID=3
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9091,2@kafka-2:9092,3@kafka-3:9093
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9094,2@kafka-2:9095,3@kafka-3:9096
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-3:9093
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_KRAFT_CLUSTER_ID=r4zt_wrqTRuT7W4NJsB_GA
@@ -92,6 +96,8 @@ services:
       - ./kafdata3:/opt/bitnami/kafka/data
     ports:
       - 9093:9093
+    depends_on:
+      - db_postgres
     restart: always
     networks:
       - weather_kafka
@@ -110,21 +116,6 @@ services:
     networks:
       - weather_kafka
 
-  topic-creator:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    depends_on:
-      - kafka-1
-      - kafka-2
-      - kafka-3
-    networks:
-      - weather_kafka
-    restart: always
-    volumes:
-      - ./create_topics.sh:/create_topics.sh
-    entrypoint: ["/bin/bash", "/create_topics.sh"]
-
   python_cron:
     container_name: python_app
     build:
@@ -134,7 +125,8 @@ services:
     depends_on:
       - db_postgres
       - kafka-1
-      - kafka-ui
+      - kafka-2
+      - kafka-3
     restart: always
     networks:
       - weather_kafka

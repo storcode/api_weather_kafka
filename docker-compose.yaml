@@ -9,7 +9,7 @@ services:
       - ./app/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - 5433:5432
-    restart: always
+    restart: "no"
     networks:
       - weather_kafka
 
@@ -46,7 +46,7 @@ services:
       - 9091:9091
     depends_on:
       - db_postgres
-    restart: always
+    restart: "no"
     networks:
       - weather_kafka
 
@@ -72,7 +72,7 @@ services:
       - 9092:9092
     depends_on:
       - db_postgres
-    restart: always
+    restart: "no"
     networks:
       - weather_kafka
 
@@ -98,7 +98,7 @@ services:
       - 9093:9093
     depends_on:
       - db_postgres
-    restart: always
+    restart: "no"
     networks:
       - weather_kafka
 
@@ -112,7 +112,7 @@ services:
       - KAFKA_CLUSTERS_0_NAME=kafka-ui-cluster
     ports:
       - 8190:8180
-    restart: always
+    restart: "no"
     networks:
       - weather_kafka
 
@@ -127,7 +127,7 @@ services:
       - kafka-1
       - kafka-2
       - kafka-3
-    restart: always
+    restart: "no"
     networks:
       - weather_kafka
 
